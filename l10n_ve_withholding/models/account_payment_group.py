@@ -15,37 +15,7 @@ _logger = logging.getLogger(__name__)
 class AccountPaymentGroup(models.Model):
 
     _inherit = "account.payment.group"
-
-    # this field is to be used by vat retention
-    selected_debt_taxed = fields.Monetary(
-        string='Selected Debt taxed',
-        compute='_compute_selected_debt_taxed',
-    )
-    iva = fields.Boolean('¿Aplicar Retención IVA?')
-    islr = fields.Boolean('¿Aplicar Retención ISLR?')
-    regimen_islr_id = fields.Many2one(
-        'seniat.tabla.islr', 
-        'Aplicativo ISLR'
-    )
-    partner_regimen_islr_ids = fields.Many2many(
-        'seniat.tabla.islr',
-        compute='_partner_regimenes_islr',
-    )
-    #This field is to be used by invoice in multicurrency
-    selected_finacial_debt = fields.Monetary(
-        string='Selected Financial Debt',
-        compute='_compute_selected_debt_financial',
-    )
-    selected_finacial_debt_currency = fields.Monetary(
-        string='Selected Financial Debt in foreign currency',
-        compute='_compute_selected_debt_financial',
-    )
-    debt_multicurrency = fields.Boolean(
-        string='debt is in foreign currency?', default=False,
-    )
-    selected_debt_currency_id = fields.Many2one("res.currency",
-        string='Selected Debt in foreign currency',
-    )
+    
     @api.depends('partner_id.seniat_regimen_islr_ids')
     def _partner_regimenes_islr(self):
         """
@@ -139,3 +109,34 @@ class AccountPaymentGroup(models.Model):
                 rec.unreconciled_amount = rec.to_pay_amount - rec.selected_finacial_debt
             else:
                 rec.unreconciled_amount = rec.to_pay_amount - rec.selected_debt
+
+    # this field is to be used by vat retention
+    selected_debt_taxed = fields.Monetary(
+        string='Selected Debt taxed',
+        compute='_compute_selected_debt_taxed',
+    )
+    iva = fields.Boolean('¿Aplicar Retención IVA?')
+    islr = fields.Boolean('¿Aplicar Retención ISLR?')
+    regimen_islr_id = fields.Many2one(
+        'seniat.tabla.islr', 
+        'Aplicativo ISLR'
+    )
+    partner_regimen_islr_ids = fields.Many2many(
+        'seniat.tabla.islr',
+        compute='_partner_regimenes_islr',
+    )
+    #This field is to be used by invoice in multicurrency
+    selected_finacial_debt = fields.Monetary(
+        string='Selected Financial Debt',
+        compute='_compute_selected_debt_financial',
+    )
+    selected_finacial_debt_currency = fields.Monetary(
+        string='Selected Financial Debt in foreign currency',
+        compute='_compute_selected_debt_financial',
+    )
+    debt_multicurrency = fields.Boolean(
+        string='debt is in foreign currency?', default=False,
+    )
+    selected_debt_currency_id = fields.Many2one("res.currency",
+        string='Selected Debt in foreign currency',
+    )
