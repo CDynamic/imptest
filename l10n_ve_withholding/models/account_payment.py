@@ -24,7 +24,7 @@ class AccountPayment(models.Model):
     @api.onchange('journal_id')
     def _onchange_compute_amount_currency(self):
         for rec in self:
-            pass
+            # pass
             if rec.other_currency and rec.payment_group_id:
                 if rec.payment_group_id.payments_amount <= 0:
                     rec.amount = rec.payment_group_id.selected_finacial_debt

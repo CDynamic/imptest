@@ -8,6 +8,7 @@
 from odoo import models, api, fields, _
 from odoo.exceptions import ValidationError
 import logging
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -15,6 +16,40 @@ _logger = logging.getLogger(__name__)
 class AccountPaymentGroup(models.Model):
 
     _inherit = "account.payment.group"
+
+    
+
+    # this field is to be used by vat retention
+    selected_debt_taxed = fields.Monetary(
+        string='Selected Debt taxed',
+        compute='_compute_selected_debt_taxed',)
+    
+    iva = fields.Boolean('¿Aplicar Retención IVA?')
+    islr = fields.Boolean('¿Aplicar Retención ISLR?')
+    regimen_islr_id = fields.Many2one(
+        'seniat.tabla.islr', 
+        'Aplicativo ISLR'
+    )
+    partner_regimen_islr_ids = fields.Many2many(
+        'seniat.tabla.islr',
+        compute='_partner_regimenes_islr',
+    )
+    #This field is to be used by invoice in multicurrency
+    selected_finacial_debt = fields.Monetary(
+        string='Selected Financial Debt',
+        compute='_compute_selected_debt_financial',
+    )
+    selected_finacial_debt_currency = fields.Monetary(
+        string='Selected Financial Debt in foreign currency',
+        compute='_compute_selected_debt_financial',
+    )
+    debt_multicurrency = fields.Boolean(
+        string='debt is in foreign currency?', default=False,
+    )
+    selected_debt_currency_id = fields.Many2one("res.currency",
+        string='Selected Debt in foreign currency',
+    )
+
     
     @api.depends('partner_id.seniat_regimen_islr_ids')
     def _partner_regimenes_islr(self):
@@ -27,6 +62,8 @@ class AccountPaymentGroup(models.Model):
                 rec.partner_regimen_islr_ids = rec.partner_id.seniat_regimen_islr_ids
             else:
                 rec.partner_regimen_islr_ids = rec.env['seniat.tabla.islr']
+
+
 
     @api.depends(
         'to_pay_move_line_ids.amount_residual',
@@ -41,11 +78,15 @@ class AccountPaymentGroup(models.Model):
             selected_debt_taxed = 0.0
             for line in rec.to_pay_move_line_ids._origin:
                 #this is conditional used to vat retention
-                for abg in line.move_id.tax_totals_json:
-                    if str(abg[0]).find('IVA') > -1:
-                        selected_debt_taxed += abg[1]
-                selected_finacial_debt += line.financial_amount_residual
+                tax_totals = json.loads(line.move_id.tax_totals_json)
+                if tax_totals['amount_total'] > tax_totals['amount_untaxed']:
+                    print(tax_totals['groups_by_subtotal']['Base imponible'][0]['tax_group_name'])
+                    
+                    if tax_totals['groups_by_subtotal']['Base imponible'][0]['tax_group_name'].find('IVA') > -1:
+                        selected_debt_taxed = tax_totals['groups_by_subtotal']['Base imponible'][0]['tax_group_amount']
+                        
             rec.selected_debt_taxed = selected_debt_taxed
+    
 
     @api.depends(
         'to_pay_move_line_ids.amount_residual',
@@ -110,33 +151,4 @@ class AccountPaymentGroup(models.Model):
             else:
                 rec.unreconciled_amount = rec.to_pay_amount - rec.selected_debt
 
-    # this field is to be used by vat retention
-    selected_debt_taxed = fields.Monetary(
-        string='Selected Debt taxed',
-        compute='_compute_selected_debt_taxed',
-    )
-    iva = fields.Boolean('¿Aplicar Retención IVA?')
-    islr = fields.Boolean('¿Aplicar Retención ISLR?')
-    regimen_islr_id = fields.Many2one(
-        'seniat.tabla.islr', 
-        'Aplicativo ISLR'
-    )
-    partner_regimen_islr_ids = fields.Many2many(
-        'seniat.tabla.islr',
-        compute='_partner_regimenes_islr',
-    )
-    #This field is to be used by invoice in multicurrency
-    selected_finacial_debt = fields.Monetary(
-        string='Selected Financial Debt',
-        compute='_compute_selected_debt_financial',
-    )
-    selected_finacial_debt_currency = fields.Monetary(
-        string='Selected Financial Debt in foreign currency',
-        compute='_compute_selected_debt_financial',
-    )
-    debt_multicurrency = fields.Boolean(
-        string='debt is in foreign currency?', default=False,
-    )
-    selected_debt_currency_id = fields.Many2one("res.currency",
-        string='Selected Debt in foreign currency',
-    )
+   

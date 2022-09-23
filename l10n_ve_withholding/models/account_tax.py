@@ -23,7 +23,7 @@ class AccountTax(models.Model):
 
     def get_withholding_vals(self, payment_group):
         commercial_partner = payment_group.commercial_partner_id
-
+        print(commercial_partner)
         force_withholding_amount_type = None
         if self.withholding_type == 'partner_tax' and payment_group.iva == True:
             alicuota_retencion = self.get_partner_alicuot(commercial_partner)
@@ -35,7 +35,9 @@ class AccountTax(models.Model):
             base_amount = payment_group.selected_debt_taxed
             base_invoice = [
                 int(x.balance) * -1.0 for x in payment_group.to_pay_move_line_ids][0]
+           
             amount = base_amount * (alicuota)
+            print(base_invoice,alicuota,alicuota_retencion,amount)
             vals['comment_withholding'] = "%s x %s" % (
                 base_amount, alicuota)
             vals['total_amount'] = base_invoice
