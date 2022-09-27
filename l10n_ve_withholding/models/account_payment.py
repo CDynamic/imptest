@@ -13,13 +13,41 @@ _logger = logging.getLogger(__name__)
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
+    payment_date = fields.Date( 
+        compute='_compute_payment_date',
+        readonly=True,
+        required=False,
+        string="Payments Date",
+        
+    )
+
+    communication = fields.Char(
+        compute='_compute_communication',
+        readonly=True,
+    )
+
     #created to record retention percentages
     comment_withholding = fields.Char('Comment withholding')
 
     def _get_fiscal_period(self, date):
+        
         str_date = str(date).split('-')
         vals = 'AÑO '+str_date[0]+' MES '+str_date[1]
+        print(date,vals)
         return vals
+
+    
+    # @api.depends('payment_ids.line_ids')
+    def _compute_payment_date(self):
+      cos= self.env['account.payment.group'].search( [('payment_ids', '=', self.id)])
+      self.payment_date = cos.payment_date
+
+    def _compute_communication(self):
+      cos= self.env['account.payment.group'].search( [('payment_ids', '=', self.id)])
+      self.communication = cos.communication
+
+
+
 
     @api.onchange('journal_id')
     def _onchange_compute_amount_currency(self):
