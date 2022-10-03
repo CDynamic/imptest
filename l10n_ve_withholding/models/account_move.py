@@ -6,10 +6,12 @@
 #
 #
 ###############################################################################
+from email.policy import default
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime
 import logging
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -21,6 +23,71 @@ class AccountMove(models.Model):
         help="Number used to manage pre-printed invoices, by law you will"
              " need to put here this number to be able to declarate on"
              " Fiscal reports correctly.",store=True)
+
+    withholding_data = fields.Boolean(
+        
+        help = 'a flag is set to notify that the hold was created'
+    )
+
+    def get_partner_alicuot(self, partner):
+        self.ensure_one()
+        
+        if partner.vat_retention:
+            alicuot = partner.vat_retention
+        else:
+            raise UserError(_(
+                'Si utiliza Cálculo de impuestos igual a "Alícuota en el '
+                'Partner", debe setear el campo de retención de IVA'
+                ' en la ficha del partner, seccion Compra'))
+
+        return alicuot
+
+    def compute_withholdings_move(self):
+        ret_IVA = self.commercial_partner_id.browse(self.company_id.id)
+        tax_totals = json.loads(self.tax_totals_json)
+        to_pay_move_lines = self.open_move_line_ids
+        iva = tax_totals['groups_by_subtotal']['Base imponible'][0]['tax_group_name'].split(' ')[1].replace('%',"")
+        if not to_pay_move_lines:
+            raise UserError(_('Nothing to be paid on selected entries'))
+        to_pay_partners = self.mapped('commercial_partner_id')
+        if len(to_pay_partners) > 1:
+            raise UserError(_('Selected recrods must be of the same partner'))
+
+        if tax_totals['amount_total'] > tax_totals['amount_untaxed']:
+            if tax_totals['groups_by_subtotal']['Base imponible'][0]['tax_group_name'].find('IVA') > -1:
+                selected_debt_taxed = tax_totals['groups_by_subtotal']['Base imponible'][0]['tax_group_amount']
+
+        alicuota = int(ret_IVA.vat_retention) / 100.0
+        
+        amount =  self.amount_tax * (alicuota)
+        ret_IVA.vat_retention
+        vals ={
+            'report_date' : self.invoice_date,
+            'invoice' : self.ref,
+            'Núm_Control' : self.l10n_ve_document_number,
+            'Núm_ND' : '',
+            'Núm_NC' : '',
+            'Total_Compra_con_IVA' : self.amount_total,
+            'Compras_sin_crédito' : '',
+            'Base_Imponible' : self.amount_untaxed,
+            'Alicuota' : iva,
+            'Monto_IVA' : self.amount_tax,
+            'IVA_Retenido' : amount,
+            'move_id' : self.id
+        }
+        if self.withholding_data == False:
+
+            try:
+                self.write({'withholding_data':True})
+                self.env['whithholdings.iva'].create(vals)
+        
+            except:
+                raise UserError(_('withholding could not be calculated'))
+        else: 
+
+            raise UserError(_('withholding could not be calculateds '))
+
+
 
     def get_taxes_values(self):
         """

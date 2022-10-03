@@ -37,7 +37,6 @@ class AccountTax(models.Model):
                 int(x.balance) * -1.0 for x in payment_group.to_pay_move_line_ids][0]
            
             amount = base_amount * (alicuota)
-            print(base_invoice,alicuota,alicuota_retencion,amount)
             vals['comment_withholding'] = "%s x %s" % (
                 base_amount, alicuota)
             vals['total_amount'] = base_invoice

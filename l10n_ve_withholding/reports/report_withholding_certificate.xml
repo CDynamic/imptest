@@ -13,7 +13,7 @@
                     <div class="text-right">
                         <h4><b><t t-esc="report_name"/></b></h4>
                         <p style="font-size: 14px;">
-                            <b>N° de Comprobante: </b><span t-esc="report_number"/><br/>
+                            <!-- <b>N° de Comprobante: </b><span t-esc="report_number"/><br/> -->
                             <b>Fecha de emisión: </b><span t-esc="report_date"/><br/>
                             <b>Periodo Fiscal: </b><span t-esc="o._get_fiscal_period(report_date)"/>
                         </p>
@@ -40,61 +40,103 @@
                         <span t-esc="o.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": True, "no_tag_br": True}'/>
 
                     </div>
+                
+                    <div class="col-6">
+
+                        <!-- IDENTIFICACION (AGENTE DE RETENCIÓN) -->
+                        <!-- (1) Apellido uy Nombre: Denominicacion o Razon Social -->
+                        <strong>Razon Social del Agente de Retención: </strong><span t-field="o.company_id.name"/>
+                        <!-- (2) RIF -->
+                        <br/>
+                        <strong>R.I.F:</strong> <span t-field="o.company_id.partner_id.l10n_latam_identification_type_id.l10n_ve_code"/>-<span t-field="o.company_id.vat"/>
+                        <!-- (3) Responsabilidad -->
+                        <br/>
+                        <strong>Tipo de Contribuyente: </strong><span t-field="o.company_id.l10n_ve_responsibility_type_id"/>
+                        <!-- (4) Domicilio Comercial -->
+                        <br/>
+                        <span t-esc="o.company_id.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": True, "no_tag_br": True}'/>
+
+                    </div>
                 </div>
+                <br/>
                 <table class="table table-sm o_main_table">
                     <thead>
+                        <th class="text-center" colspan="2"><strong>Datos de la retención practicada</strong></th>
+                    </thead>
+                </table>
+                <table class="table table-sm o_main_table">
+                    <thead class="thead-Info">
                         <tr>
-                            <th class="text-center" colspan="2"><strong>Datos de la retención practicada</strong></th>
+                            <th class="text-center"><strong>Número de factura</strong></th>
+
+                            <th class="text-center"><strong>Número de Control</strong></th>
+
+                            <th class="text-center"><strong>Cod.<br/>Ret</strong></th>
+
+                            <th class="text-center"><strong>Monto Bruto a pagar</strong></th>
+
+                            <th class="text-center"><strong>Monto Objeto Retencion</strong></th>
+
+                            <th class="text-center"><strong>Base Acumulativa Gravable con Tarifa</strong></th>
+                            <th class="text-center"><strong>Base Proporcional Base Imponible</strong></th>
+                            <th class="text-center"><strong>Monto Deducible </strong></th>
+                            <th class="text-center"><strong>%Ret.<br/>ISLR</strong></th>
+                            <th class="text-center"><strong>Retencion Acum Tarifa 2</strong></th>
+                            <th class="text-center"><strong>Monto Retenido</strong></th>
+                            
+                        
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="text-right">
-                                Por Concepto:
-                            </td>
-                            <td class="text-left">
-                                <span t-field="o.payment_group_id.regimen_islr_id.code_seniat"/> - <span t-field="o.payment_group_id.regimen_islr_id.activity_name"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-right">
-                                Comprobante que origina la retención:
-                            </td>
-                            <td class="text-left">
+                            <td class="text-center">
                                 <t t-foreach="o.payment_group_id.to_pay_move_line_ids" t-as="i">
-                                    Nro: <span t-field="i.move_id.l10n_ve_document_number"/>, 
+                                    <!-- Nro: <span t-field="i.move_id.l10n_ve_document_number"/>,  -->
                                     <t t-if="i.move_id.move_type == out_invoice">
-                                        Fact: <span t-field="i.move_id.name"/>
+                                        <span t-field="i.move_id.name"/>
                                     </t>
                                     <t t-else="">
-                                        Fact: <span t-field="i.move_id.ref"/>
+                                        <span t-field="i.move_id.ref"/>
                                     </t>
                                 </t>
                             </td>
-                        </tr>
-                        <tr>
-                            <td class="text-right">
-                                Importe del comprobante que origina la retención:
+                            <td class="text-center">
+                                <t t-foreach="o.payment_group_id.to_pay_move_line_ids" t-as="i">
+                                    <span t-field="i.move_id.l10n_ve_document_number"/> 
+                                </t>
                             </td>
-                            <td class="text-left">
+                            <td class="text-center">
+                                 <span t-field="o.payment_group_id.regimen_islr_id.code_seniat"/> <!-- - <span t-field="o.payment_group_id.regimen_islr_id.activity_name"/> -->
+                            </td>
+
+                            <td class="text-center">
+                                <t t-foreach="o.payment_group_id.to_pay_move_line_ids" t-as="i">
+                                    <span t-field="i.move_id.amount_total"/> 
+                                </t>
+                            </td>
+
+                            <td class="text-center">
                                 <span t-field="o.withholding_base_amount"/>
                             </td>
-                        </tr>
-                        <tr>
-                            <td style="width: 50%;" class="text-right">
-                                Porcentaje Aplicado:
-                            </td>
-                            <td class="text-left">
+
+                            <td class="text-center"> 0,00 </td>
+
+                            <td class="text-center"> 100% </td>
+
+                            <td class="text-center"> 0,00 </td>
+
+                            <td class="text-center">
                                 <span t-field="o.comment_withholding"/>
                             </td>
-                        </tr>
-                        <tr>
-                            <td class="text-right">
-                                Importe de la retención:
-                            </td>
-                            <td class="text-left">
+
+                            <td class="text-center"> 0,00 </td>
+
+                            <td class="text-center">
                                 <span t-field="o.amount"/>
                             </td>
+
+                            
+                            
                         </tr>
                     </tbody>
                 </table>
@@ -124,6 +166,23 @@
             </t>
         </t>
     </template>
+    <record id="report_qweb_paperformat_l_ISLR"  model="report.paperformat">
+    <field name="name">Account financial report qweb landscape</field>
+        <field name="default" eval="True"/>
+        <field name="format">custom</field>
+        <field name="page_height">297</field>
+        <field name="page_width">210</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">12</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">10</field>
+        <field name="dpi">110</field>
+        <field name="orientation">Landscape</field>
+
+    </record>
 
     <report
         string="Certificado de Retención"
@@ -133,6 +192,7 @@
         name="l10n_ve_withholding.report_withholding_certificate"
         file="l10n_ve_withholding.report_withholding_certificate"
         print_report_name="'Certificado de Retención - %s' % (object.withholding_number or '')"
+        paperformat="report_qweb_paperformat_l"
     />
 
 </odoo>

@@ -43,6 +43,7 @@
         'views/seniat_partner_type_view.xml',
         'views/seniat_tabla_islr_view.xml',
         'views/account_payment_group_view.xml',
+        'views/account_invoce_withholding.xml',
     ],
 
 }
