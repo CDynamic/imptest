@@ -29,6 +29,16 @@ class AccountMove(models.Model):
         help = 'a flag is set to notify that the hold was created'
     )
 
+    withholding_iva_id = fields.Many2one('whithholdings.iva',string='idretenido',required=False)
+
+    def _get_fiscal_period(self, date):
+        
+        str_date = str(date).split('-')
+        vals = 'AÑO '+str_date[0]+' MES '+str_date[1]
+        print(date,vals)
+        return vals
+
+
     def get_partner_alicuot(self, partner):
         self.ensure_one()
         
@@ -61,6 +71,7 @@ class AccountMove(models.Model):
         
         amount =  self.amount_tax * (alicuota)
         ret_IVA.vat_retention
+        print(self)
         vals ={
             'report_date' : self.invoice_date,
             'invoice' : self.ref,
@@ -73,20 +84,21 @@ class AccountMove(models.Model):
             'Alicuota' : iva,
             'Monto_IVA' : self.amount_tax,
             'IVA_Retenido' : amount,
-            'move_id' : self.id
+            
         }
-        if self.withholding_data == False:
-
-            try:
-                self.write({'withholding_data':True})
-                self.env['whithholdings.iva'].create(vals)
+       
+       
+        # if self.withholding_data == False:
+        #     try:
+        iva_id = self.env['whithholdings.iva'].create(vals)
+        self.write({'withholding_data':True, 'withholding_iva_id':iva_id})
         
-            except:
-                raise UserError(_('withholding could not be calculated'))
-        else: 
 
-            raise UserError(_('withholding could not be calculateds '))
+            # except:
+            #     raise UserError(_('withholding could not be calculated'))
+        # else: 
 
+        #     raise UserError(_('withholding could not be calculateds '))
 
 
     def get_taxes_values(self):
@@ -124,6 +136,26 @@ class AccountMove(models.Model):
                     _("El diario por el cual está emitiendo la factura no"+
                         " tiene secuencia para número de control"))
 
+
+    def reportWithholdingCertificateInvoceIva(self):
+        pass
+        # report_obj = self.env['ir.actions.report']
+        # report = report_obj._get_report_from_name('l10n_ve_withholding.report_withholding_certificate_invoce_iva')
+        # data ={
+        #     'move': self,
+        #     'doc_model': self.env['whithholdings.iva'],
+        #     'docs': self.env['whithholdings.iva'].search([('move_id','=',self.id)])
+        # } 
+
+
+
+
+        # print(report.report_action(self),self)
+        # return report.with_context(
+        #          docs= self.env['whithholdings.iva'].search([('move_id','=',self.id)])
+        # ).report_action(None, data=data)
+
+
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
@@ -138,3 +170,17 @@ class AccountMoveLine(models.Model):
         except Exception:
             pass
         return super()._compute_price()
+
+class VisitReport(models.AbstractModel):
+
+    _name='report.account.move'
+
+    @api.model
+    def _get_report_values(self, docids, data=None):
+        report_obj = self.env['ir.actions.report']
+        report = report_obj._get_report_from_name('l10n_ve_withholding.report_withholding_certificate_invoce_iva')
+        return {
+            'doc_ids': docids,
+            'doc_model': self.env['account.move'],
+            'docs': self.env['account.move'].browse(docids)
+        }

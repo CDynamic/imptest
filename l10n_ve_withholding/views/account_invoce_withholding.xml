@@ -19,14 +19,14 @@
                         />  
                      
                 </xpath>
-                    <xpath expr="//button[@name='open_created_caba_entries']" position="after">
-                            <field name="withholding_data" invisible="0"/>
-                            <button name="compute_withholdings_move" type="object" string="Descargar Retención" class="oe_stat_button" icon="fa-file-text-o" attrs=
+                    <!-- <xpath expr="//button[@name='open_created_caba_entries']" position="after">
+                            <field name="withholding_data" invisible="1"/>
+                            <button name="reportWithholdingCertificateInvoceIva" type="object" string="Descargar Retención" class="oe_stat_button" icon="fa-file-text-o" attrs=
                             "{'invisible': [
                             '|','|', ('move_type', '!=', 'in_invoice'),('state', '!=', 'posted'),
                             ('withholding_data', '==', False)
                         ]}"/>
-                    </xpath>
+                    </xpath> -->
                 
                 
             </field>

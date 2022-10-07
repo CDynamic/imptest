@@ -21,7 +21,7 @@
     'category': 'Localization',
     'license': 'AGPL-3',
     'depends': [
-        'account', 'l10n_ve_base','account_withholding_automatic',],
+        'account','purchase', 'l10n_ve_base','account_withholding_automatic',],
     'data': [
         'data/account_tax_withholding_template.xml',
         'data/seniat_factor.xml',
@@ -29,6 +29,7 @@
         'data/seniat_ut.xml',
         'data/seniat_tabla_islr.xml',
         'data/account_move_sequence.xml',
+        
         'reports/report_templates.xml',
         'reports/report_withholding_certificate.xml',
         'reports/report_withholding_certificate_iva.xml',
@@ -44,6 +45,9 @@
         'views/seniat_tabla_islr_view.xml',
         'views/account_payment_group_view.xml',
         'views/account_invoce_withholding.xml',
+        'reports/report_withholding_certificate_invoce_iva.xml',
+        'reports/puchase_whithholdings_iva.xml',
+        
     ],
 
 }

@@ -366,6 +366,12 @@ msgid "Certificado de Retención"
 msgstr "Certificado de Retención"
 
 #. module: l10n_ve_withholding
+#: model:ir.actions.report,name:l10n_ve_withholding.report_withholding_certificate_invoce_iva
+#: model:ir.actions.report,name:l10n_ve_withholding.report_withholding_certificate_invoce_iva
+msgid "Certificado de Retención"
+msgstr "Certificado de Retención"
+
+#. module: l10n_ve_withholding
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_bank_statement_import_journal_creation__sequence_control_id
 #: model:ir.model.fields,help:l10n_ve_withholding.field_account_journal__sequence_control_id
 msgid "Checks numbering sequence."

@@ -19,4 +19,7 @@ class account_move_whithholdings(models.Model):
     Alicuota = fields.Char()
     Monto_IVA = fields.Float()
     IVA_Retenido = fields.Float()
-    move_id = fields.Many2one('account.move',string='Factura',required=True)
+
+    
+        
+    
